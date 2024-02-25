@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":features:home"))
 
     implementation(libs.androidx.core.ktx)

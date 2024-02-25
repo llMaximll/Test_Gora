@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="features_home_search_placeholder">Search news</string>
+    <string name="features_home_download_error">Data download error</string>
+    <string name="features_home_empty_articles">No articles found</string>
+</resources>

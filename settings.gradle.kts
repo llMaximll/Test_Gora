@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 rootProject.name = "Test_Gora"
 include(":app")
 include(":features:home")
+include(":core:data")
+include(":core:common")

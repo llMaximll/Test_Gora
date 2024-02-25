@@ -10,7 +10,9 @@ import com.github.llmaximll.features.home.HomeScreen
 @Composable
 fun TestGoraNavHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController
+    navController: NavHostController,
+    onArticleClick: (String) -> Unit,
+    onShowSnackbar: (String) -> Unit
 ) {
     NavHost(
         modifier = modifier,
@@ -20,7 +22,10 @@ fun TestGoraNavHost(
         composable(
             route = Destination.Home.route
         ) {
-            HomeScreen()
+            HomeScreen(
+                onArticleClick = onArticleClick,
+                onShowSnackbar = onShowSnackbar
+            )
         }
     }
 }

@@ -41,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:data"))
+    implementation(project(":core:common"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -56,6 +59,8 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.coil)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
