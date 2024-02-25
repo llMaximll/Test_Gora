@@ -4,7 +4,6 @@ import com.github.llmaximll.core.common.Category
 import com.github.llmaximll.core.common.ext.asDate
 import com.github.llmaximll.core.common.models.Article
 import com.github.llmaximll.core.data.local.models.ArticleEntity
-import com.github.llmaximll.core.data.remote.models.ArticleDto.Companion.asModel
 import com.google.gson.annotations.SerializedName
 import java.util.Date
 

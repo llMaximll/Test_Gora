@@ -11,7 +11,6 @@ import com.github.llmaximll.core.data.remote.models.ArticleDto.Companion.asEntit
 import com.github.llmaximll.core.data.remote.models.ArticleDto.Companion.asModel
 import com.github.llmaximll.core.data.remote.sources.NewsRemoteDataSource
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 

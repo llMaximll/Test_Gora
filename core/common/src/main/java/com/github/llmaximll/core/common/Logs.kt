@@ -1,7 +1,6 @@
 package com.github.llmaximll.core.common
 
 import timber.log.Timber
-import java.lang.Exception
 
 fun log(message: String) {
     Timber.v(message)
