@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Test_Gora</string>
+
+    <string name="destination_title_home">News</string>
 </resources>
