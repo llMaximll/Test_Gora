@@ -1,11 +1,13 @@
 package com.github.llmaximll.features.home
 
+import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,22 +37,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.github.llmaximll.core.common.Category
+import com.github.llmaximll.core.common.ImageCache
+import com.github.llmaximll.core.common.err
+import com.github.llmaximll.core.common.fetchImage
 import com.github.llmaximll.core.common.log
 import com.github.llmaximll.core.common.models.Article
+import com.github.llmaximll.core.common.readFromDiskCache
+import com.github.llmaximll.core.common.saveToDiskCache
 import com.github.llmaximll.core.common.ui.shimmerEffect
 
 const val routeHomeScreen = "home"
@@ -285,7 +299,45 @@ private fun ArticlesSuccess(
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    AsyncImage(
+                    val context = LocalContext.current
+                    val density = LocalDensity.current.density
+
+                    var bitmap by remember(article.urlToImage) { mutableStateOf<ImageBitmap?>(null) }
+                    val errorBitmap = ImageBitmap.imageResource(id = R.drawable.error_image)
+
+                    LaunchedEffect(article.urlToImage) {
+                        val imageUrl = article.urlToImage ?: return@LaunchedEffect
+
+                        val cachedBitmap =
+                            ImageCache.get(imageUrl) ?: context.readFromDiskCache(
+                                imageUrl
+                            )
+
+                        if (cachedBitmap != null) {
+                            bitmap = cachedBitmap.asImageBitmap()
+                        } else {
+                            try {
+                                val decodedBitmap = fetchImage(imageUrl)
+                                val scaledBitmap = Bitmap.createScaledBitmap(
+                                    decodedBitmap,
+                                    (decodedBitmap.width * density).toInt() / 5,
+                                    (decodedBitmap.height * density).toInt() / 5,
+                                    true
+                                )
+                                bitmap = scaledBitmap.asImageBitmap()
+
+                                context.saveToDiskCache(imageUrl, scaledBitmap)
+
+                                ImageCache.put(imageUrl, scaledBitmap)
+                            } catch (e: Exception) {
+                                err(e)
+                                bitmap = errorBitmap
+                            }
+                        }
+                    }
+
+                    // Стандартный подход
+                    /*AsyncImage(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(8.dp))
@@ -301,10 +353,53 @@ private fun ArticlesSuccess(
                                     size = this.size,
                                 )
                             },
-                        model = article.urlToImage,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(article.urlToImage)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = article.content,
-                        contentScale = ContentScale.Crop
-                    )
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = R.drawable.error_image),
+                        alignment = Alignment.Center
+                    )*/
+
+                    AnimatedContent(
+                        targetState = bitmap != null,
+                        label = "Image"
+                    ) { isLoaded ->
+                        if (isLoaded) {
+                            Image(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .drawWithContent {
+                                        drawContent()
+                                        drawRect(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    Color.Black
+                                                )
+                                            ),
+                                            size = this.size,
+                                        )
+                                    },
+                                bitmap = bitmap!!,
+                                contentDescription = article.content,
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .shimmerEffect()
+                            ) {
+
+                            }
+                        }
+                    }
 
                     Text(
                         modifier = Modifier

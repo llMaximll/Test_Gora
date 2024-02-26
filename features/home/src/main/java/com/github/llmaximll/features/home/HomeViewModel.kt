@@ -32,11 +32,10 @@ class HomeViewModel @Inject constructor(
             CategoryState.Init
         }
     )
-
     val articlesState: StateFlow<ArticlesState> = combine(
         _articlesState,
         _searchFlow
-    ) { articlesState, searchQuery ->
+    ) { articlesState, _ ->
         val newMap = articlesState.toMutableMap()
         articlesState.forEach { (category, state) ->
             if (state is CategoryState.Success) {
