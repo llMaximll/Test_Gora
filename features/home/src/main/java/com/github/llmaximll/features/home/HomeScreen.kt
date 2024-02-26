@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,7 @@ import com.github.llmaximll.core.common.log
 import com.github.llmaximll.core.common.models.Article
 import com.github.llmaximll.core.common.readFromDiskCache
 import com.github.llmaximll.core.common.saveToDiskCache
+import com.github.llmaximll.core.common.theme.Typography
 import com.github.llmaximll.core.common.ui.shimmerEffect
 
 const val routeHomeScreen = "home"
@@ -88,7 +90,7 @@ fun HomeScreen(
 
     Column(
         modifier = modifier
-            .padding(bottom = 12.dp),
+            .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -200,7 +202,8 @@ private fun Articles(
         if (!(state is CategoryState.Success && state.articles.isEmpty())) {
             Text(
                 modifier = Modifier.padding(horizontal = 12.dp),
-                text = category.name
+                text = category.name,
+                style = Typography.titleMedium
             )
         }
 
@@ -320,8 +323,8 @@ private fun ArticlesSuccess(
                                 val decodedBitmap = fetchImage(imageUrl)
                                 val scaledBitmap = Bitmap.createScaledBitmap(
                                     decodedBitmap,
-                                    (decodedBitmap.width * density).toInt() / 5,
-                                    (decodedBitmap.height * density).toInt() / 5,
+                                    (decodedBitmap.width * density).toInt() / 15,
+                                    (decodedBitmap.height * density).toInt() / 15,
                                     true
                                 )
                                 bitmap = scaledBitmap.asImageBitmap()
@@ -332,6 +335,9 @@ private fun ArticlesSuccess(
                             } catch (e: Exception) {
                                 err(e)
                                 bitmap = errorBitmap
+                            } finally {
+                                if (bitmap == null)
+                                    bitmap = errorBitmap
                             }
                         }
                     }
@@ -364,10 +370,11 @@ private fun ArticlesSuccess(
                     )*/
 
                     AnimatedContent(
-                        targetState = bitmap != null,
-                        label = "Image"
-                    ) { isLoaded ->
-                        if (isLoaded) {
+                        targetState = bitmap,
+                        label = "Image",
+                        transitionSpec = { fadeIn().togetherWith(fadeOut()) }
+                    ) { bitmapState ->
+                        if (bitmapState != null) {
                             Image(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -384,7 +391,7 @@ private fun ArticlesSuccess(
                                             size = this.size,
                                         )
                                     },
-                                bitmap = bitmap!!,
+                                bitmap = bitmapState,
                                 contentDescription = article.content,
                                 contentScale = ContentScale.Crop,
                                 alignment = Alignment.Center
@@ -409,7 +416,8 @@ private fun ArticlesSuccess(
                         color = Color.White,
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.End,
+                        style = Typography.bodyMedium
                     )
                 }
             }

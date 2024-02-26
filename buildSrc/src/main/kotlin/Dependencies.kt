@@ -4,6 +4,6 @@ object AppVersions {
     const val TARGET_SDK = 34
     const val VERSION_CODE = 1
     const val VERSION_NAME = "0.0.1"
-    const val IS_MINIFY_ENABLED = true
+    const val IS_MINIFY_ENABLED = false
     const val KOTLIN_COMPILER_EXTENSION_VERSION = "1.5.8"
 }

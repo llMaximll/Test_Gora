@@ -5,16 +5,23 @@ import androidx.lifecycle.viewModelScope
 import com.github.llmaximll.core.common.Category
 import com.github.llmaximll.core.common.di.IoDispatcher
 import com.github.llmaximll.core.common.launchWithHandler
+import com.github.llmaximll.core.common.log
 import com.github.llmaximll.core.common.models.Article
 import com.github.llmaximll.core.data.repositories.NewsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,11 +34,13 @@ class HomeViewModel @Inject constructor(
     val searchFlow: StateFlow<String> =
         _searchFlow.asStateFlow()
 
+
     private val _articlesState = MutableStateFlow<ArticlesState>(
         Category.entries.associateBy { it }.mapValues { (_, _) ->
             CategoryState.Init
         }
     )
+
     val articlesState: StateFlow<ArticlesState> = combine(
         _articlesState,
         _searchFlow
@@ -51,26 +60,25 @@ class HomeViewModel @Inject constructor(
             }
         }
         newMap
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = mapOf()
-    )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = mapOf()
+        )
 
     init {
         Category.entries.forEach { category ->
-            launchWithHandler(
-                dispatcher = ioDispatcher,
-                onException = {
-                    changeArticlesState(category, CategoryState.Error(it))
-                }
-            ) {
-                getTopHeadlinesByCategory(category)
-            }
+            getTopHeadlinesByCategory(category)
         }
     }
 
-    private suspend fun getTopHeadlinesByCategory(category: Category) {
+    private fun getTopHeadlinesByCategory(category: Category) = launchWithHandler(
+        dispatcher = ioDispatcher,
+        onException = {
+            changeArticlesState(category, CategoryState.Error(it))
+        }
+    ) {
         changeArticlesState(category, CategoryState.Loading)
 
         val result = newsRepository.getTopHeadlinesByCategory(category = category)
@@ -81,15 +89,25 @@ class HomeViewModel @Inject constructor(
                 category,
                 CategoryState.Success(data.sortedByDescending { it.publishedAt })
             )
+            changeArticlesState(category, CategoryState.Success(data))
         } else {
             changeArticlesState(category, CategoryState.Error(Throwable(result.exceptionOrNull())))
         }
     }
 
+    private val articlesStateMutex = Mutex()
     private fun changeArticlesState(category: Category, newState: CategoryState) {
-        val newMap = _articlesState.value.toMutableMap()
-        newMap[category] = newState
-        _articlesState.value = newMap
+        viewModelScope.launch {
+            articlesStateMutex.withLock {
+                log("changeArticlesState::prev $category ${_articlesState.value[category]}")
+
+                val newMap = _articlesState.value.toMutableMap()
+                newMap[category] = newState
+                _articlesState.value = newMap
+
+                log("changeArticlesState::new $category ${_articlesState.value[category]}")
+            }
+        }
     }
 
     fun changeSearchText(newText: String) {

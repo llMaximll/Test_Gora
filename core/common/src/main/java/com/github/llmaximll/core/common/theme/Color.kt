@@ -1,4 +1,4 @@
-package com.github.llmaximll.test_gora.ui.theme
+package com.github.llmaximll.core.common.theme
 
 import androidx.compose.ui.graphics.Color
 

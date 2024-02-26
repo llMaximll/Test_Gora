@@ -1,4 +1,4 @@
-package com.github.llmaximll.test_gora.ui.theme
+package com.github.llmaximll.core.common.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

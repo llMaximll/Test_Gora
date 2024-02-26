@@ -29,7 +29,8 @@ import com.github.llmaximll.core.common.log
 import com.github.llmaximll.test_gora.R
 import com.github.llmaximll.test_gora.navigation.TestGoraNavHost
 import com.github.llmaximll.test_gora.navigation.titleResOrNull
-import com.github.llmaximll.test_gora.ui.theme.Test_GoraTheme
+import com.github.llmaximll.core.common.theme.Test_GoraTheme
+import com.github.llmaximll.core.common.theme.Typography
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -103,7 +104,8 @@ class MainActivity : ComponentActivity() {
             modifier = modifier,
             title = {
                 Text(
-                    text = title
+                    text = title,
+                    style = Typography.titleSmall
                 )
             }
         )

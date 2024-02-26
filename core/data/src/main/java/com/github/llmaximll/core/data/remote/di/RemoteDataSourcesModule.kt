@@ -17,9 +17,4 @@ interface RemoteDataSourcesModule {
     fun bindNewsRemoteDataSource(
         impl: NewsRemoteDataSourceImpl
     ): NewsRemoteDataSource
-
-    @Binds
-    fun bindNewsRepository(
-        impl: NewsRepositoryImpl
-    ): NewsRepository
 }
